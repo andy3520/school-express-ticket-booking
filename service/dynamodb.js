@@ -33,7 +33,23 @@ const Dynamo = {
     })
   },
 
-  createTicketTable: function(params) {},
+  createTicketTable: function(params) {
+    return new Promise((rs, rj) => {
+      var schema = {
+        TableName: "Ticket",
+        KeySchema: [{ AttributeName: "_id", KeyType: "HASH" }],
+        AttributeDefinitions: [{ AttributeName: "_id", AttributeType: "S" }],
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5
+        }
+      }
+      this.db.createTable(schema, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
   dropTripTable: function() {
     return new Promise((rs, rj) => {
@@ -47,11 +63,17 @@ const Dynamo = {
     })
   },
 
-  dropTicketTable: function(params) {},
-
-  initTripData: function(params) {},
-
-  initTicketData: function(params) {},
+  dropTicketTable: function() {
+    return new Promise((rs, rj) => {
+      let query = {
+        TableName: "Ticket"
+      }
+      this.db.deleteTable(query, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
   findAllTrip: function() {
     return new Promise((rs, rj) => {
@@ -95,8 +117,6 @@ const Dynamo = {
         ExpressionAttributeValues: ExpressionAttributeValues
       }
 
-      console.log(query)
-
       this.docClient.scan(query, (err, data) => {
         if (err) return rj(err)
         rs(data)
@@ -104,13 +124,11 @@ const Dynamo = {
     })
   },
 
-  createTrips: function(params) {},
-
-  createOneTrip: function(params) {
+  createOneTrip: function(trip) {
     return new Promise((rs, rj) => {
       let item = {
         TableName: "Trip",
-        Item: params
+        Item: trip
       }
       this.docClient.put(item, (err, data) => {
         if (err) return rj(err)
@@ -119,25 +137,136 @@ const Dynamo = {
     })
   },
 
-  editOneTrip: function(params) {},
+  editOneTrip: function(trip) {
+    return new Promise((rs, rj) => {
+      let item = {
+        TableName: "Trip",
+        Key: {
+          _id: trip._id
+        },
+        UpdateExpression:
+          "set from=:from, to=:to, date=:date, time=:time, price=:price, quantity=:quantity",
+        ExpressionAttributeValues: {
+          ":from": trip.from ? trip.from : "",
+          ":to": trip.to ? trip.to : "",
+          ":date": trip.date ? trip.date : "",
+          ":time": trip.time ? trip.time : "",
+          ":price": !isNaN(trip.price) ? Number(trip.price) : 0,
+          ":quantity": !isNaN(trip.quantity) ? Number(trip.quantity) : 0
+        },
+        ReturnValues: "UPDATED_NEW"
+      }
+      this.docClient.update(item, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  deleteOneTrip: function(params) {},
+  deleteOneTrip: function(_id) {
+    return new Promise((rs, rj) => {
+      let item = {
+        TableName: "Trip",
+        Key: {
+          _id: _id
+        }
+      }
+      this.docClient.update(item, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  deleteAllTrip: function(params) {},
+  findAllTicket: function() {
+    return new Promise((rs, rj) => {
+      let query = {
+        TableName: "Ticket"
+      }
+      this.docClient.scan(query, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  findAllTicket: function(params) {},
+  findTicketByCode: function(code) {
+    return new Promise((rs, rj) => {
+      let query = {
+        TableName: "Ticket",
+        KeyConditionExpression: "#code=:code",
+        ExpressionAttributeNames: {
+          "#code": "code"
+        },
+        ExpressionAttributeValues: {
+          ":code": code
+        }
+      }
+      this.docClient.scan(query, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  findTicketById: function(params) {},
+  createOneTicket: function(ticket) {
+    return new Promise((rs, rj) => {
+      let item = {
+        TableName: "Ticket",
+        Item: ticket
+      }
+      this.docClient.put(item, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  createTickets: function(params) {},
+  editOneTicket: function(ticket) {
+    return new Promise((rs, rj) => {
+      let item = {
+        TableName: "Ticket",
+        Key: {
+          _id: ticket._id
+        },
+        UpdateExpression:
+          "set trip.from=:from, trip.to=:to, trip.date=:date, trip.time=:time, trip.price=:price, trip.quantity=:quantity, user.name=:name, user.phone=:phone, user.email=:email, status=:status, code=:code",
+        ExpressionAttributeValues: {
+          ":from": ticket.trip.from ? ticket.trip.from : "",
+          ":to": ticket.trip.to ? ticket.trip.to : "",
+          ":date": ticket.trip.date ? ticket.trip.date : "",
+          ":time": ticket.trip.time ? ticket.trip.time : "",
+          ":price": !isNaN(ticket.trip.price) ? Number(ticket.trip.price) : 0,
+          ":quantity": !isNaN(ticket.trip.quantity) ? Number(ticket.trip.quantity) : 0,
+          ":name": ticket.user.name ? ticket.user.name : "",
+          ":phone": ticket.user.phone ? ticket.user.phone : "",
+          ":email": ticket.user.email ? ticket.user.email : "",
+          ":status": ticket.status ? ticket.status : "Pending"
+          ":status": ticket.code ? ticket.code : "Empty"
+        },
+        ReturnValues: "UPDATED_NEW"
+      }
+      this.docClient.update(item, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  },
 
-  createOneTicket: function(params) {},
-
-  editOneTicket: function(params) {},
-
-  deleteOneTicket: function(params) {},
-
-  deleteAllTicket: function(params) {}
+  deleteOneTicket: function(_id) {
+    return new Promise((rs, rj) => {
+      let item = {
+        TableName: "Ticket",
+        Key: {
+          _id: _id
+        }
+      }
+      this.docClient.update(item, (err, data) => {
+        if (err) return rj(err)
+        rs(data)
+      })
+    })
+  }
 }
 
 module.exports = Dynamo
