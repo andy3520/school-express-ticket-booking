@@ -237,12 +237,14 @@ const Dynamo = {
           ":date": ticket.trip.date ? ticket.trip.date : "",
           ":time": ticket.trip.time ? ticket.trip.time : "",
           ":price": !isNaN(ticket.trip.price) ? Number(ticket.trip.price) : 0,
-          ":quantity": !isNaN(ticket.trip.quantity) ? Number(ticket.trip.quantity) : 0,
+          ":quantity": !isNaN(ticket.trip.quantity)
+            ? Number(ticket.trip.quantity)
+            : 0,
           ":name": ticket.user.name ? ticket.user.name : "",
           ":phone": ticket.user.phone ? ticket.user.phone : "",
           ":email": ticket.user.email ? ticket.user.email : "",
-          ":status": ticket.status ? ticket.status : "Pending"
-          ":status": ticket.code ? ticket.code : "Empty"
+          ":status": ticket.status ? ticket.status : "Pending",
+          ":code": ticket.code ? ticket.code : "Empty"
         },
         ReturnValues: "UPDATED_NEW"
       }
