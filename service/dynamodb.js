@@ -145,7 +145,15 @@ const Dynamo = {
           _id: trip._id
         },
         UpdateExpression:
-          "set from=:from, to=:to, date=:date, time=:time, price=:price, quantity=:quantity",
+          "set #from=:from, #to=:to, #date=:date, #time=:time, #price=:price, #quantity=:quantity",
+        ExpressionAttributeNames: {
+          "#from": "from",
+          "#to": "to",
+          "#date": "date",
+          "#time": "time",
+          "#price": "price",
+          "#quantity": "quantity"
+        },
         ExpressionAttributeValues: {
           ":from": trip.from ? trip.from : "",
           ":to": trip.to ? trip.to : "",
@@ -171,7 +179,7 @@ const Dynamo = {
           _id: _id
         }
       }
-      this.docClient.update(item, (err, data) => {
+      this.docClient.delete(item, (err, data) => {
         if (err) return rj(err)
         rs(data)
       })
