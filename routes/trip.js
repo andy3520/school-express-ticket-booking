@@ -33,8 +33,9 @@ router.get("/", function(req, res) {
     })
 })
 
-router.get("/:from/:to/:date", function(req, res) {
-  Dynamo.findTrips(req.params.from, req.params.to, req.params.date)
+router.post("/find-trips", function(req, res) {
+  const data = req.body
+  Dynamo.findTrips(data.from, data.to, data.date)
     .then(data => {
       res.json(data)
     })
