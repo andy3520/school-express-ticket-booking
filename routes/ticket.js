@@ -33,8 +33,8 @@ router.get("/", function(req, res) {
     })
 })
 
-router.get("/:code", function(req, res) {
-  Dynamo.findTicketByCode(req.params.code)
+router.get("/:phone", function(req, res) {
+  Dynamo.findTicketByPhone(req.params.phone)
     .then(data => {
       res.json(data)
     })
@@ -64,7 +64,8 @@ router.put("/", function(req, res) {
 })
 
 router.delete("/:id", function(req, res) {
-  Dynamo.deleteOneTicket(req.params.id)
+  Dynamo.deleteOneTicket
+  (req.params.id)
     .then(data => {
       res.json(data)
     })

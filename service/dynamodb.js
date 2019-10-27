@@ -198,18 +198,20 @@ const Dynamo = {
     })
   },
 
-  findTicketByCode: function(code) {
+  findTicketByPhone: function(phone) {
     return new Promise((rs, rj) => {
       let query = {
         TableName: "Ticket",
-        KeyConditionExpression: "#code=:code",
+        FilterExpression: "#user.#phone=:phone",
         ExpressionAttributeNames: {
-          "#code": "code"
+          "#user": "user",
+          "#phone": "phone"
         },
         ExpressionAttributeValues: {
-          ":code": code
+          ":phone": phone
         }
       }
+
       this.docClient.scan(query, (err, data) => {
         if (err) return rj(err)
         rs(data)
